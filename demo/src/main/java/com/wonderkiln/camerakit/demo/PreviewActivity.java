@@ -1,5 +1,6 @@
 package com.wonderkiln.camerakit.demo;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.MediaPlayer;
@@ -9,15 +10,26 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Html;
+import android.util.Base64;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.MediaController;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.VideoView;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -38,6 +50,9 @@ public class PreviewActivity extends AppCompatActivity {
 
     @BindView(R.id.captureLatency)
     TextView captureLatency;
+
+    String ImgBase64 = "";
+    String filename = "img_gabarito.txt";
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -61,7 +76,7 @@ public class PreviewActivity extends AppCompatActivity {
             }
 
             imageView.setImageBitmap(bitmap);
-
+            ImgBase64 = Base64.encodeToString(jpeg, Base64.DEFAULT);
             actualResolution.setText(bitmap.getWidth() + " x " + bitmap.getHeight());
             approxUncompressedSize.setText(getApproximateFileMegabytes(bitmap) + "MB");
             captureLatency.setText(ResultHolder.getTimeToCallback() + " milliseconds");
@@ -108,4 +123,49 @@ public class PreviewActivity extends AppCompatActivity {
         return (bitmap.getRowBytes() * bitmap.getHeight()) / 1024 / 1024;
     }
 
+    public void SendImage(View v){
+        Log.d("Tag",  ImgBase64);
+        Log.d("File dir = ", this.getFilesDir().getAbsolutePath());
+
+        SimpleDateFormat date = new SimpleDateFormat("yyyy-MM-dd-hh-mm-ss");
+        filename = date.format(new Date()) + "_gabarito.txt";
+        Log.d("Timestamp = ", filename);
+        // Creating file
+        File file = new File(this.getFilesDir(), filename);
+
+        // Writing to a file
+        FileOutputStream outputStream;
+
+        try {
+            outputStream = openFileOutput(filename, Context.MODE_APPEND);
+            outputStream.write(ImgBase64.getBytes());
+            Toast.makeText(this, "File " + filename + " saved.", Toast.LENGTH_SHORT);
+            outputStream.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        //load();
+    }
+
+    /*
+    private void load() {
+        FileInputStream fis = null;
+        try{
+            fis = openFileInput(filename);
+            InputStreamReader isr = new InputStreamReader(fis);
+            BufferedReader br = new BufferedReader(isr);
+            StringBuilder sb = new StringBuilder();
+            String text;
+
+            while((text = br.readLine()) != null){
+                sb.append(text).append("\n");
+            }
+            Log.d("in file: " + filename, sb.toString());
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+    }
+    */
 }
